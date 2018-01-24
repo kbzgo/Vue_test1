@@ -10,31 +10,14 @@
     <!-- 路由出口 -->
     <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view></router-view>
-
-
-
   </div>
 </template>
 
 <script>
-  import axios from "axios/lib/axios"
-  import ElRadioGroup from "element-ui/packages/radio/src/radio-group";
-
   export default {
-    components: {ElRadioGroup},
     data() {
       return {
-        t1 : "",
-        t2 : "",
-        t3 : "",
-        auth : "",
-        questionId : "",
-        question : "",
-        radio : ""
       }
-    },
-    methods:{
-
     }
   }
 </script>
@@ -42,8 +25,5 @@
 <style scoped>
   #app{
     width: 100%;
-  }
-  #right{
-    ;
   }
 </style>

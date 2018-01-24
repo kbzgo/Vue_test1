@@ -55,8 +55,10 @@
     },
     methods:{
       searchQuestion(p1,dataplace){
+        let that = this;
         if(sessionStorage.getItem("authKey") == null){
           alert("请先登录");
+          that.$router.push({ path: '/main' });
         }else{
           axios.get("http://localhost:8082/project/tmquestion/detailQuestion/"+p1, {
             headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
@@ -68,6 +70,8 @@
       }
     }
   }
+  let a=(sessionStorage.getItem("authKey")!=''&&sessionStorage.getItem("authKey")!=undefined&&sessionStorage.getItem("authKey")!=null)?sessionStorage.getItem("authKey"):localStorage.getItem("authKey")
+  axios.defaults.headers.common['Authorization']="Bearer "+a;
 </script>
 
 <style scoped>

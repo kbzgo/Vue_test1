@@ -1,16 +1,25 @@
 <template>
   <div id="app">
-    <h1>题库管理系统</h1>
-    <p>
-      <!-- 使用 router-link 组件来导航. -->
-      <!-- 通过传入 `to` 属性指定链接. -->
-      <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
-      <router-link to="/main">查询</router-link>
-      <router-link to="/login">登录</router-link>
-    </p>
-    <!-- 路由出口 -->
-    <!-- 路由匹配到的组件将渲染在这里 -->
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content bg-purple-dark">
+          <h1>题库管理系统</h1>
+        </div>
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content bg-purple-dark">
+
+        </div>
+      </el-col>
+    </el-row>
+
+    <p><router-link to="/main">查询</router-link>&nbsp<router-link to="/login">登录</router-link></p>
+
     <router-view></router-view>
+    <router-view name="a"></router-view>
+
   </div>
 </template>
 
@@ -27,10 +36,14 @@
     components: {ElRadioGroup},
     data() {
       return {
-
+        authIsExist : sessionStorage.getItem("authKey") == null
       }
     },
+
     methods:{
+      logout(){
+        sessionStorage.removeItem("authKey");
+      },
       goBack () {
         window.history.length > 1
           ? this.$router.go(-1)
@@ -42,8 +55,33 @@
 
 <style>
   #app {
-    margin: 0 auto;
     text-align: center;
-    width : 100%;
+  }
+
+  .el-row {
+    margin-bottom: 0px;
+  }
+  .el-row:last-child {
+     margin-bottom: 0;
+  }
+
+  .el-col {
+    border-radius: 4px;
+  }
+  .bg-purple-dark {
+    background: #99a9bf;
+  }
+  .bg-purple {
+    background: #d3dce6;
+  }
+  .bg-purple-light {
+    background: #e5e9f2;
+  }
+  .grid-content {
+    border-radius: 4px;
+    min-height: 36px;
+  }
+  .row-bg {
+    background-color: #f9fafc;
   }
 </style>

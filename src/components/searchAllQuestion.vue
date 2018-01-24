@@ -1,5 +1,28 @@
 <template>
   <div id="app">
+
+
+    <!--------------------------------------------------查询题目内容---------------------------------------------------->
+
+
+    <p>
+      <el-select v-model="searchType" placeholder="查询" size="mini">
+        <el-option
+          v-for="item in searchTypeOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
+      <el-button @click="search($data,1)" type="success" size="small">搜索</el-button>
+      <el-button @click="searchAllQuestion($route.params.id,$data,1);" type="success" size="small">查看题库全部</el-button>
+      <el-input v-model="searchContent" placeholder="输入题干或ID"/>
+    </p>
+
+
+    <!--------------------------------------------------显示表格内容---------------------------------------------------->
+
+
     <el-table :data="questions" border style="width: 100%">
       <el-table-column fixed prop="qtitle" label="题干" width="150">
       </el-table-column>
@@ -17,6 +40,8 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination background layout="prev, pager, next" :total=parseInt(totalpage)*10 @current-change="test1">
+    </el-pagination>
 
 
     <!---------------------------------------------显示选择题Dialog框--------------------------------------------------->
@@ -248,6 +273,15 @@
         totalDescMult : "",
         numberDescMult : "",
         MultFinalAnswer : "",
+        searchType : "",
+        searchContent : "",
+        searchTypeOptions: [{
+          value: '0',
+          label: 'ID'
+        }, {
+          value: '1',
+          label: '题干'
+        }],
         qType: [{
           value: '0',
           label: '单选题'
@@ -292,16 +326,74 @@
         StaticDid : "",
         db : [],
         businessId : "",
-        pp : []
+        pp : [],
+        totalpage : "",
+        currentType : ""
       }
     },
     mounted(){
       let that = this;
-      that.$options.methods.searchAllQuestion(that.$route.params.id,that.$data);
+      that.$options.methods.searchAllQuestion(that.$route.params.id,that.$data,1);
       that.StaticDid = that.$route.params.id;
       this.$options.methods.getDb(this.$data);
     },
     methods:{
+      //搜索功能
+      search(dataplace,page){
+        dataplace.currentType = 0;
+        console.log(dataplace.searchType);
+        if(dataplace.searchType == 0){
+          axios.get("http://localhost:8082/project/tmquestion/detailQuestion/"+dataplace.searchContent, {
+            headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
+          }).then(function (response) {
+            console.log(response);
+            if(response.data.data.qtype == "0"){
+              response.data.data.qtype = "单选题";
+            }
+            if(response.data.data.qtype == "1"){
+              response.data.data.qtype = "多选题";
+            }
+            if(response.data.data.qtype == "2"){
+              response.data.data.qtype = "判断题";
+            }
+            dataplace.questions = [];
+            dataplace.questions.push( response.data.data );
+          })
+        }else{
+          axios.get("http://localhost:8082/project/tmquestion/queryQtitleTmQuestionByPagination?page="+page+"&rows=5&qTitle="+dataplace.searchContent+"&dId="+dataplace.StaticDid, {
+            headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
+          }).then(function (response) {
+            console.log(response);
+            for(let i=0;i<response.data.rows.length;i++){
+              console.log(response.data.rows[i].qtype);
+              if(response.data.rows[i].qtype == "0"){
+                response.data.rows[i].qtype = "单选题";
+              }
+              if(response.data.rows[i].qtype == "1"){
+                response.data.rows[i].qtype = "多选题";
+              }
+              if(response.data.rows[i].qtype == "2"){
+                response.data.rows[i].qtype = "判断题";
+              }
+            }
+            dataplace.questions = [];
+            dataplace.questions =  response.data.rows ;
+            dataplace.totalpage = response.data.pages;
+          })
+        }
+      },
+      //分页功能（按题目查询有BUG）
+      test1(p1){
+        let that = this;
+        if(that.$data.currentType == 0){
+          that.$data.searchType == 1;
+          search(that.$data,p1);
+        }
+        if(that.$data.currentType == 1){
+          that.$options.methods.searchAllQuestion(that.$route.params.id,that.$data,p1);
+        }
+        that.StaticDid = that.$route.params.id;
+      },
       //增加一个选项
       addOption(p1,dataplace){
         dataplace.readyOptions.push({ oname : ""+p1+"" , odesc: ""});
@@ -331,12 +423,13 @@
           console.log(dataplace.db);
         })
       },
-      searchAllQuestion(DbCode,dataplace){
+      searchAllQuestion(DbCode,dataplace,p1){
+        dataplace.currentType = 1;
         if(sessionStorage.getItem("authKey") == null){
           alert("请先登录");
           this.$router.push({ path: '/login' });
         }else{
-          axios.get("http://localhost:8082/project/tmquestion/queryTmQuestionByPagination?rows=10&page=1&dId="+DbCode,{
+          axios.get("http://localhost:8082/project/tmquestion/queryTmQuestionByPagination?rows=5&page="+p1+"&dId="+DbCode,{
             headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
           }).then(function (response) {
             for(let i=0;i<response.data.rows.length;i++){
@@ -353,6 +446,8 @@
             }
             console.log(response);
             dataplace.questions = response.data.rows;
+            dataplace.totalpage = response.data.pages;
+            console.log("totalpage="+dataplace.totalpage);
           })
         }
       },
@@ -432,7 +527,7 @@
           headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
         }).then(function (response) {
           console.log(response);
-          that.$options.methods.searchAllQuestion(dataplace.StaticDid,dataplace);
+          that.$options.methods.searchAllQuestion(dataplace.StaticDid,dataplace,1);
         })
       },
       handleClose(done) {
@@ -475,7 +570,7 @@
             }).then(function (response) {
               console.log(response.data.data);
               dataplace.updateDialogShowType2 = false;
-              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data);
+              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data,1);
             })
           }//如果是选择题
           else if(dataplace.questionType == "0"){
@@ -515,7 +610,7 @@
             }).then(function (response) {
               console.log(response.data.data);
               dataplace.updateDialogShowType0 = false;
-              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data);
+              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data,1);
             })
           }//如果是多选题
           else if(dataplace.questionType == "1"){
@@ -561,13 +656,15 @@
             }).then(function (response) {
               console.log(response.data.data);
               dataplace.updateDialogShowType1 = false;
-              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data);
+              that1.$options.methods.searchAllQuestion(that1.$route.params.id,that1.$data,1);
             })
           }
         }
       }
     }
   }
+  let a=(sessionStorage.getItem("authKey")!=''&&sessionStorage.getItem("authKey")!=undefined&&sessionStorage.getItem("authKey")!=null)?sessionStorage.getItem("authKey"):localStorage.getItem("authKey")
+  axios.defaults.headers.common['Authorization']="Bearer "+a;
 </script>
 
 <style scoped>

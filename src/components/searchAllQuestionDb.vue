@@ -15,6 +15,12 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination background layout="prev, pager, next" :total=parseInt(totalpage)*10 @current-change="test1">
+    </el-pagination>
+
+
+    <!----------------------------------------------修改题库Dialog框--------------------------------------------------->
+
 
     <el-dialog
       title="修改题库"
@@ -26,6 +32,10 @@
         <el-button @click="updateQuestionDb()" type="primary">确 定</el-button>
       </span>
     </el-dialog>
+
+
+    <!----------------------------------------------添加题库Dialog框--------------------------------------------------->
+
 
     <el-dialog
       title="添加题库"
@@ -54,24 +64,31 @@
         newQuestionDbCode : "",
         newQuestionDbname : "",
         detailDialogShow : false,
-        addDialogShow : false
+        addDialogShow : false,
+        totalpage : ""
       }
     },
     mounted(){
       let that = this;
-      that.$options.methods.searchAllQuestionDb(that.$data);
+      that.$options.methods.searchAllQuestionDb(that.$data,1);
     },
     methods:{
-      searchAllQuestionDb(dataplace){
+      test1(p1){
+        let that = this;
+        that.$options.methods.searchAllQuestionDb(that.$data,p1);
+      },
+      searchAllQuestionDb(dataplace,page){
+        let that = this;
         if(sessionStorage.getItem("authKey") == null){
           alert("请先登录");
-          this.$router.push({ path: '/login' });
+          that.$router.push({ path: '/login' });
         }else{
-          axios.get("http://localhost:8082/project/tmQuestionDb/findAllDbByPagination?rows=10&page=1",{
+          axios.get("http://localhost:8082/project/tmQuestionDb/findAllDbByPagination?rows=5&page="+page,{
             headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
           }).then(function (response) {
             console.log(response);
             dataplace.questionDbs = response.data.rows;
+            dataplace.totalpage = response.data.pages;
           })
         }
       },
@@ -81,7 +98,7 @@
           headers: {"Authorization": "Bearer "+sessionStorage.getItem("authKey")}
         }).then(function (response) {
           console.log(response);
-          that.$options.methods.searchAllQuestionDb(that.$data);
+          that.$options.methods.searchAllQuestionDb(that.$data,1);
         })
       },
       changeShow(p1){
@@ -98,7 +115,7 @@
         }).then(function (response) {
           console.log(response);
           that.$data.detailDialogShow = false;
-          that.$options.methods.searchAllQuestionDb(that.$data);
+          that.$options.methods.searchAllQuestionDb(that.$data,1);
         })
       },
       addNewQuestionDb() {
@@ -111,7 +128,7 @@
         }).then(function (response) {
           console.log(response);
           that.$data.addDialogShow = false;
-          that.$options.methods.searchAllQuestionDb(that.$data);
+          that.$options.methods.searchAllQuestionDb(that.$data,1);
         })
       },
       findByQuestionDb(p1){
@@ -119,6 +136,8 @@
       }
     }
   }
+  let a=(sessionStorage.getItem("authKey")!=''&&sessionStorage.getItem("authKey")!=undefined&&sessionStorage.getItem("authKey")!=null)?sessionStorage.getItem("authKey"):localStorage.getItem("authKey")
+  axios.defaults.headers.common['Authorization']="Bearer "+a;
 </script>
 
 <style scoped>

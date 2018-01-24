@@ -323,6 +323,8 @@
       }
     }
   }
+  let a=(sessionStorage.getItem("authKey")!=''&&sessionStorage.getItem("authKey")!=undefined&&sessionStorage.getItem("authKey")!=null)?sessionStorage.getItem("authKey"):localStorage.getItem("authKey")
+  axios.defaults.headers.common['Authorization']="Bearer "+a;
 </script>
 
 <style scoped>

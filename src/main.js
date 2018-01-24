@@ -34,6 +34,11 @@ const SearchAllQuestionDb = searchAllQuestionDb;
 // 或者，只是一个组件配置对象。
 // 我们晚点再讨论嵌套路由。
 const routes = [
+  { path: '/', components : {
+      default:  Main,
+      a : Login ,
+    }
+    },
   { path: '/main', component: Main,
     children : [
       { path: '/questiondbmain', component : QuestionDbMain,
